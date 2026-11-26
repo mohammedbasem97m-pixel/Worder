@@ -1,199 +1,1482 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ملفي جاهز الحفظ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  color-scheme: light dark;
-  --bg: #f5f6f8; --surface: #ffffff; --text: #1c1e21; --muted: #6b7280;
-  --border: #dfe3e8; --accent: #2563eb;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #15171a; --surface: #1f2226; --text: #e8eaed; --muted: #9aa0a6;
-    --border: #2f3439; --accent: #60a5fa;
-  }
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; min-height: 100vh; padding: 24px 16px;
-  font-family: "Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
-  background: var(--bg); color: var(--text);
-}
-main { max-width: 720px; margin: 0 auto; }
-h1 { font-size: 1.6rem; margin: 0 0 14px; text-align: center; }
-input, select, button {
-  font: inherit; padding: 10px 12px; border-radius: 10px;
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
-}
-button { cursor: pointer; }
-.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px; color: var(--muted); }
-.crumbs button { border: none; background: none; color: var(--accent); padding: 4px 6px; }
-.back { margin-bottom: 12px; }
-.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
-.controls input[type=search] { flex: 0 1 320px; }
-.controls select { flex: 0 1 160px; }
-.count { color: var(--muted); font-size: 0.9rem; margin-bottom: 10px; }
-ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-li.row {
-  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-}
-.icon { font-size: 1.2rem; }
-.name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; color: var(--text); text-decoration: none; }
-a.name:hover, .folder-name:hover { color: var(--accent); }
-.folder-name { cursor: pointer; }
-.badge { flex-shrink: 0; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
-.word { background: #2b579a; } .excel { background: #217346; } .pdf { background: #d32f2f; }
-.open-btn { color: var(--accent); }
-.empty { text-align: center; color: var(--muted); padding: 24px 0; }
-[hidden] { display: none !important; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ملفي جاهز الحفظ</title>
+    <!-- استيراد خط Cairo من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- استيراد Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        bgMain: '#f8fafc',
+                        borderLight: '#e2e8f0',
+                        primaryBlue: '#2563eb',
+                        primaryBlueHover: '#1d4ed8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* منع التمرير الأفقي وضمان التوافق التام مع الموبايل والحاسبة */
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            background-color: #f8fafc;
+            font-family: 'Cairo', sans-serif;
+            color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+
+        /* تصميم البطاقات والحقول */
+        .app-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.03), 0 1px 3px -1px rgba(15, 23, 42, 0.02);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .app-card-hover:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .app-input {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            min-height: 44px;
+            transition: all 0.2s ease;
+        }
+        .app-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        /* ضمان مساحة لمس مريحة للأصابع على الموبايل */
+        .touch-btn {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-zone-active {
+            border-color: #2563eb !important;
+            background-color: #eff6ff !important;
+        }
+
+        /* حركة الإشعارات */
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -16px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        .toast-enter {
+            animation: slideDownFade 0.25s ease-out forwards;
+        }
+    </style>
 </head>
-<body>
-<main>
-  <h1>ملفي جاهز الحفظ</h1>
+<body class="min-h-screen py-5 px-3.5 sm:px-6 lg:px-8 sm:py-8">
 
-  <div class="crumbs" id="crumbs"></div>
-  <button class="back" id="backBtn" hidden>⬅ رجوع</button>
+    <!-- حاوية الإشعارات المنبثقة (Toast) -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-[92vw] max-w-md pointer-events-none"></div>
 
-  <div class="controls">
-    <input id="search" type="search" placeholder="ابحث في هذا المجلد..." aria-label="بحث">
-    <select id="type" aria-label="نوع الملف">
-      <option value="all">كل الأنواع</option>
-      <option value="word">Word</option>
-      <option value="excel">Excel</option>
-      <option value="pdf">PDF</option>
-    </select>
-  </div>
+    <!-- الحاوية الرئيسية: تتكيف تلقائياً من عرض الموبايل الكامل إلى 1100px على الحاسبة -->
+    <main class="w-full max-w-[1100px] mx-auto space-y-5 sm:space-y-6">
 
-  <div class="count" id="count"></div>
-  <ul id="list"></ul>
-  <div class="empty" id="empty" hidden>لا توجد عناصر هنا</div>
-</main>
+        <!-- 1. الهيدر العلوي بتدرج أزرق فاتح مريح -->
+        <header class="app-card bg-gradient-to-l from-sky-50 via-white to-blue-50/70 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="text-center sm:text-right space-y-1">
+                <div class="inline-flex items-center justify-center sm:justify-start gap-2.5">
+                    <span class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                    </span>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        ملفي جاهز الحفظ
+                    </h1>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                    إدارة وتنظيم المجلدات، ملفات Word و Excel و PDF، وروابط Google Drive في مكان واحد
+                </p>
+            </div>
 
-<script>
-/*
-  لتعديل المحتوى عدّل المصفوفتين فقط:
+            <!-- أزرار الوصول السريع للإضافة (تظهر بوضوح على الحاسبة والموبايل) -->
+            <div class="grid grid-cols-3 sm:flex items-center gap-2 shrink-0">
+                <button type="button" onclick="scrollToSection('section-new-folder')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer gap-1.5">
+                    <span>+ مجلد</span>
+                </button>
+                <button type="button" onclick="scrollToSection('section-upload-files')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer gap-1.5">
+                    <span>+ رفع ملف</span>
+                </button>
+                <button type="button" onclick="scrollToSection('section-drive-link')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-xs sm:text-sm transition-all cursor-pointer gap-1.5">
+                    <span>+ رابط Drive</span>
+                </button>
+            </div>
+        </header>
 
-  FOLDERS: المجلدات.
-    id: معرّف فريد بالإنجليزية (بدون مسافات)
-    name: اسم المجلد
-    parent: معرّف المجلد الأب، أو null للمجلدات الرئيسية
+        <!-- 2. شريط مسار التنقل (Breadcrumbs) والعداد -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1">
+            <nav aria-label="مسار التنقل" class="flex items-center flex-wrap gap-1.5 text-sm sm:text-[15px] font-semibold" id="breadcrumbs-container">
+                <!-- يتم توليده ديناميكياً -->
+            </nav>
+            <div class="flex items-center justify-between sm:justify-end gap-3">
+                <span id="items-counter" class="text-xs sm:text-sm font-bold text-slate-600 bg-white px-3.5 py-1.5 rounded-full border border-slate-200">
+                    1 مجلد و 0 ملف
+                </span>
+            </div>
+        </div>
 
-  FILES: الملفات.
-    name: اسم الملف
-    type: word أو excel أو pdf
-    url: رابط Google Drive
-    folder: معرّف المجلد الذي يحتوي الملف، أو null للرئيسية
-*/
-const FOLDERS = [
-  // { id: "work", name: "العمل", parent: null },
-  // { id: "designs", name: "التصاميم", parent: "work" },
-];
+        <!-- 3. شريط الأدوات العلوي (صف واحد على الحاسبة، ومكدس بسلاسة على الموبايل) -->
+        <section class="app-card p-3.5 sm:p-4">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <!-- حقل البحث -->
+                <div class="relative flex-1">
+                    <div class="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-slate-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z"></path>
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="ابحث في هذا المجلد بالاسم..." 
+                        class="app-input w-full pr-11 pl-10 py-2.5 text-sm sm:text-[15px] text-slate-800 placeholder-slate-400"
+                    >
+                    <button 
+                        id="clear-search-btn" 
+                        type="button" 
+                        title="مسح البحث"
+                        class="hidden absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
+                    >
+                        ✕
+                    </button>
+                </div>
 
-const FILES = [
-  // { name: "السيرة الذاتية", type: "pdf", url: "https://drive.google.com/file/d/ID/view", folder: null },
-  // { name: "عرض تقديمي", type: "word", url: "https://drive.google.com/file/d/ID/view", folder: "designs" },
-];
+                <!-- قائمة التصفية حسب النوع -->
+                <div class="relative w-full md:w-56 shrink-0">
+                    <select 
+                        id="type-filter" 
+                        class="app-input w-full px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-800 appearance-none cursor-pointer bg-white"
+                    >
+                        <option value="all">كل الأنواع</option>
+                        <option value="folder">مجلد</option>
+                        <option value="Word">Word</option>
+                        <option value="Excel">Excel</option>
+                        <option value="PDF">PDF</option>
+                        <option value="drive">رابط Drive</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-const LABELS = { word: "Word", excel: "Excel", pdf: "PDF" };
-let current = null;
+        <!-- 4. شبكة عرض المجلدات والملفات (1 عمود على الموبايل الصغير، 2 على التابلت، 3 إلى 4 أعمدة على الحاسبة) -->
+        <section id="items-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4" aria-label="المجلدات والملفات">
+            <!-- يتم توليد البطاقات هنا ديناميكياً -->
+        </section>
 
-const $ = id => document.getElementById(id);
-const list = $("list"), crumbs = $("crumbs"), backBtn = $("backBtn");
-const search = $("search"), typeSel = $("type"), count = $("count"), empty = $("empty");
+        <!-- 5. قسم الإضافة والرفع (شبكة متجاوبة: عمود واحد على الموبايل، و 3 أعمدة متناسقة على الحاسبة) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 pt-2">
 
-const folderById = id => FOLDERS.find(f => f.id === id);
+            <!-- بطاقة 1: إنشاء مجلد داخل هذا المكان -->
+            <section id="section-new-folder" class="app-card p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center shrink-0">
+                            📁
+                        </span>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                            إنشاء مجلد داخل هذا المكان
+                        </h2>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        أنشئ مجلداً جديداً لتنظيم ملفاتك وروابطك داخل المسار الحالي.
+                    </p>
+                    <input 
+                        type="text" 
+                        id="new-folder-name" 
+                        placeholder="اسم المجلد الجديد" 
+                        class="app-input w-full px-4 py-2.5 text-sm sm:text-[15px] text-slate-800 placeholder-slate-400"
+                    >
+                </div>
+                <div class="pt-1">
+                    <button 
+                        type="button" 
+                        id="create-folder-btn" 
+                        class="touch-btn w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-[0.99] text-white font-bold text-sm sm:text-[15px] px-5 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+                    >
+                        إنشاء مجلد
+                    </button>
+                </div>
+            </section>
 
-function pathOf(id) {
-  const chain = [];
-  let cur = id ? folderById(id) : null;
-  while (cur) { chain.unshift(cur); cur = cur.parent ? folderById(cur.parent) : null; }
-  return chain;
-}
+            <!-- بطاقة 2: رفع الملفات إلى هذا المكان -->
+            <section id="section-upload-files" class="app-card p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0">
+                                ⬆️
+                            </span>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                                    رفع الملفات إلى هذا المكان
+                                </h2>
+                                <p id="upload-destination-label" class="text-xs text-blue-600 font-semibold">
+                                    الرفع سيكون إلى: الرئيسية
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-function openFolder(id) {
-  current = id;
-  search.value = "";
-  render();
-}
+                    <!-- منطقة السحب والإفلات -->
+                    <div 
+                        id="drop-zone" 
+                        class="border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50/70 rounded-2xl p-4 text-center cursor-pointer transition-all select-none min-h-[104px] flex flex-col items-center justify-center"
+                    >
+                        <input 
+                            type="file" 
+                            id="file-input" 
+                            multiple 
+                            accept=".docx,.xlsx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf" 
+                            class="hidden"
+                        >
+                        <p class="text-sm font-bold text-slate-700 mb-1">
+                            اسحب الملفات هنا، أو اضغط لاختيارها
+                        </p>
+                        <p class="text-xs text-slate-500">
+                            يدعم اختيار أكثر من ملف مرة واحدة
+                        </p>
+                    </div>
 
-function render() {
-  crumbs.innerHTML = "";
-  const root = document.createElement("button");
-  root.textContent = "الرئيسية";
-  root.addEventListener("click", () => openFolder(null));
-  crumbs.appendChild(root);
-  pathOf(current).forEach(f => {
-    crumbs.appendChild(document.createTextNode(" / "));
-    const b = document.createElement("button");
-    b.textContent = f.name;
-    b.addEventListener("click", () => openFolder(f.id));
-    crumbs.appendChild(b);
-  });
-  backBtn.hidden = !current;
+                    <!-- قائمة الملفات المختارة قبل الرفع -->
+                    <div id="selected-files-preview" class="hidden space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-600">
+                            <span>الملفات المختارة:</span>
+                            <button type="button" id="clear-selected-files" class="text-red-500 hover:underline py-1 px-2 cursor-pointer">إلغاء الكل</button>
+                        </div>
+                        <ul id="selected-files-list" class="space-y-1.5 text-xs text-slate-700 max-h-28 overflow-y-auto"></ul>
+                    </div>
+                </div>
 
-  const q = search.value.trim().toLowerCase();
-  const t = typeSel.value;
+                <div class="space-y-2.5 pt-1">
+                    <button 
+                        type="button" 
+                        id="upload-files-btn" 
+                        disabled
+                        class="touch-btn w-full bg-blue-300 text-white font-bold text-sm sm:text-[15px] px-5 py-2.5 rounded-xl transition-all cursor-not-allowed"
+                    >
+                        ارفع الملفات المختارة
+                    </button>
+                    <p class="text-[11px] sm:text-xs leading-relaxed text-slate-500">
+                        يقبل: Word (.docx) و Excel (.xlsx) و PDF بحد أقصى 5 ميغابايت للملف.
+                    </p>
+                </div>
+            </section>
 
-  const subs = FOLDERS
-    .filter(f => (f.parent || null) === current)
-    .filter(f => f.name.toLowerCase().includes(q));
-  const here = FILES
-    .filter(f => (f.folder || null) === current)
-    .filter(f => (t === "all" || f.type === t) && f.name.toLowerCase().includes(q));
+            <!-- بطاقة 3: إضافة رابط Google Drive إلى هذا المكان -->
+            <section id="section-drive-link" class="app-card p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
+                            🔗
+                        </span>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                            إضافة رابط Google Drive
+                        </h2>
+                    </div>
 
-  list.innerHTML = "";
-  subs.forEach(f => {
-    const li = document.createElement("li");
-    li.className = "row";
-    const icon = document.createElement("span");
-    icon.className = "icon"; icon.textContent = "📁";
-    const name = document.createElement("span");
-    name.className = "name folder-name";
-    name.textContent = f.name;
-    name.addEventListener("click", () => openFolder(f.id));
-    const open = document.createElement("button");
-    open.className = "open-btn";
-    open.textContent = "فتح";
-    open.addEventListener("click", () => openFolder(f.id));
-    li.append(icon, name, open);
-    list.appendChild(li);
-  });
+                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5">
+                        <div class="sm:col-span-2 lg:col-span-1">
+                            <input 
+                                type="text" 
+                                id="drive-file-name" 
+                                placeholder="اسم الملف" 
+                                class="app-input w-full px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400"
+                            >
+                        </div>
+                        <div class="relative">
+                            <select 
+                                id="drive-file-type" 
+                                class="app-input w-full px-3.5 py-2.5 text-sm font-semibold text-slate-800 appearance-none cursor-pointer bg-white"
+                            >
+                                <option value="Word">نوع الملف: Word</option>
+                                <option value="Excel">نوع الملف: Excel</option>
+                                <option value="PDF">نوع الملف: PDF</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
 
-  here.forEach(f => {
-    const li = document.createElement("li");
-    li.className = "row";
-    const a = document.createElement("a");
-    a.className = "name";
-    a.href = f.url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = f.name;
-    const badge = document.createElement("span");
-    badge.className = "badge " + f.type;
-    badge.textContent = LABELS[f.type] || "ملف";
-    li.append(a, badge);
-    list.appendChild(li);
-  });
+                    <input 
+                        type="url" 
+                        id="drive-file-url" 
+                        placeholder="الصق رابط Google Drive هنا" 
+                        dir="ltr"
+                        class="app-input w-full px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 text-right focus:text-left"
+                    >
+                </div>
 
-  count.textContent = `${subs.length} مجلد و ${here.length} ملف`;
-  empty.hidden = subs.length + here.length > 0;
-}
+                <div class="pt-1">
+                    <button 
+                        type="button" 
+                        id="add-drive-link-btn" 
+                        class="touch-btn w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-800 font-bold text-sm sm:text-[15px] px-5 py-2.5 rounded-xl border border-slate-300 transition-all shadow-2xs cursor-pointer"
+                    >
+                        إضافة الرابط
+                    </button>
+                </div>
+            </section>
 
-backBtn.addEventListener("click", () => {
-  const parent = folderById(current);
-  openFolder(parent && parent.parent ? parent.parent : null);
-});
-search.addEventListener("input", render);
-typeSel.addEventListener("change", render);
-render();
-</script>
+        </div>
+
+        <!-- 6. شريط أدوات النسخ الاحتياطي وإعادة الضبط في الأسفل -->
+        <footer class="pt-3 pb-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500">
+            <button type="button" id="export-backup-btn" class="touch-btn px-3 py-1.5 rounded-xl hover:bg-white hover:text-blue-600 transition-colors cursor-pointer font-medium">
+                تصدير نسخة احتياطية (JSON)
+            </button>
+            <span class="hidden sm:inline">•</span>
+            <label class="touch-btn px-3 py-1.5 rounded-xl hover:bg-white hover:text-blue-600 transition-colors cursor-pointer font-medium">
+                استيراد نسخة احتياطية
+                <input type="file" id="import-backup-input" accept=".json" class="hidden">
+            </label>
+            <span class="hidden sm:inline">•</span>
+            <button type="button" id="reset-app-btn" class="touch-btn px-3 py-1.5 rounded-xl hover:bg-white hover:text-red-600 transition-colors cursor-pointer font-medium">
+                إعادة ضبط البيانات
+            </button>
+        </footer>
+
+    </main>
+
+    <!-- نافذة تعديل اسم المجلد أو الملف (تأخذ 94vw على الموبايل ومقاس مريح على الحاسبة) -->
+    <div id="rename-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/45 backdrop-blur-[1px] p-3">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-[94vw] max-w-md p-5 sm:p-6 space-y-4">
+            <h3 class="text-lg font-bold text-slate-900">تعديل الاسم</h3>
+            <p class="text-xs sm:text-sm text-slate-500">أدخل الاسم الجديد للعنصر:</p>
+            <input 
+                type="text" 
+                id="rename-input" 
+                class="app-input w-full px-4 py-2.5 text-sm sm:text-base text-slate-800"
+                placeholder="الاسم الجديد"
+            >
+            <div class="flex items-center justify-end gap-2.5 pt-2">
+                <button type="button" id="rename-cancel-btn" class="touch-btn px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="button" id="rename-save-btn" class="touch-btn px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 cursor-pointer">
+                    حفظ التعديل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد مخصصة (بديل alert/confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/45 backdrop-blur-[1px] p-3">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-[94vw] max-w-md p-5 sm:p-6 space-y-4">
+            <h3 id="confirm-title" class="text-lg font-bold text-slate-900">تأكيد الحذف</h3>
+            <p id="confirm-message" class="text-sm text-slate-600 leading-relaxed">هل أنت متأكد من رغبتك في حذف هذا العنصر؟</p>
+            <div class="flex items-center justify-end gap-2.5 pt-2">
+                <button type="button" id="confirm-cancel-btn" class="touch-btn px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="button" id="confirm-ok-btn" class="touch-btn px-5 py-2 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-700 cursor-pointer">
+                    نعم، احذف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة معاينة الملفات المرفوعة (94vw على الموبايل و max-w-3xl على الحاسبة) -->
+    <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/55 backdrop-blur-[2px] p-2.5 sm:p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-[94vw] max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-slate-200 gap-2">
+                <h3 id="preview-title" class="text-sm sm:text-base font-bold text-slate-900 truncate">معاينة الملف</h3>
+                <div class="flex items-center gap-2 shrink-0">
+                    <a id="preview-download-btn" href="#" download class="touch-btn px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition-colors">
+                        تحميل
+                    </a>
+                    <button type="button" id="preview-close-btn" class="touch-btn w-10 h-10 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 cursor-pointer font-bold">
+                        ✕
+                    </button>
+                </div>
+            </div>
+            <div id="preview-body" class="p-3.5 sm:p-5 overflow-auto flex-1 bg-slate-50 flex items-center justify-center min-h-[280px]">
+                <!-- محتوى المعاينة -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * تطبيق "ملفي جاهز الحفظ" - نسخة متجاوبة بالكامل (Mobile + Desktop)
+         * يدعم إدارة المجلدات المتداخلة، تعديل الأسماء، رفع وحفظ الملفات (Word, Excel, PDF) في IndexedDB،
+         * معاينة PDF واستخراج معاينة نصية/هيكلية لملفات Word و Excel، وإضافة روابط Google Drive.
+         */
+
+        const STORAGE_KEY = 'malafi_jahiz_alhifz_v2';
+        const DB_NAME = 'MalafiFilesDB';
+        const DB_STORE = 'files_blobs';
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 ميجابايت
+
+        let appState = {
+            items: [],
+            currentFolderId: null,
+            searchQuery: '',
+            typeFilter: 'all'
+        };
+
+        let stagedFiles = [];
+        let pendingConfirmAction = null;
+        let renamingItemId = null;
+
+        // ==========================================
+        // 1. إدارة IndexedDB لتخزين محتوى الملفات المرفوعة
+        // ==========================================
+        function openFilesDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(DB_STORE)) {
+                        db.createObjectStore(DB_STORE, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function saveFileBlob(id, file) {
+            try {
+                const db = await openFilesDB();
+                const arrayBuffer = await file.arrayBuffer();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(DB_STORE, 'readwrite');
+                    const store = tx.objectStore(DB_STORE);
+                    store.put({
+                        id: id,
+                        name: file.name,
+                        type: file.type,
+                        data: arrayBuffer
+                    });
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch (err) {
+                console.error('خطأ في حفظ الملف في IndexedDB:', err);
+                return false;
+            }
+        }
+
+        async function getFileBlob(id) {
+            try {
+                const db = await openFilesDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(DB_STORE, 'readonly');
+                    const store = tx.objectStore(DB_STORE);
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (err) {
+                console.error('خطأ في استرجاع الملف:', err);
+                return null;
+            }
+        }
+
+        async function deleteFileBlob(id) {
+            try {
+                const db = await openFilesDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction(DB_STORE, 'readwrite');
+                    tx.objectStore(DB_STORE).delete(id);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            } catch (err) {
+                return false;
+            }
+        }
+
+        async function clearAllFileBlobs() {
+            try {
+                const db = await openFilesDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction(DB_STORE, 'readwrite');
+                    tx.objectStore(DB_STORE).clear();
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // ==========================================
+        // 2. إدارة الحالة والتخزين المحلي (localStorage)
+        // ==========================================
+        function loadState() {
+            try {
+                // الترحيل السلس من النسخة السابقة إن وجدت
+                const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('malafi_jahiz_alhifz_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed.items)) {
+                        appState.items = parsed.items;
+                        saveState();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('تعذر قراءة البيانات المحفوظة:', e);
+            }
+
+            // البيانات الافتراضية عند الفتح لأول مرة
+            appState.items = [
+                {
+                    id: 'folder_default_5',
+                    parentId: null,
+                    kind: 'folder',
+                    name: '5',
+                    fileType: 'folder',
+                    createdAt: Date.now()
+                }
+            ];
+            saveState();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    items: appState.items
+                }));
+            } catch (e) {
+                showToast('حدث خطأ أثناء حفظ البيانات في المتصفح', 'error');
+            }
+        }
+
+        // ==========================================
+        // 3. دوال مساعدة (التنقل، الأيقونات، التنبيهات)
+        // ==========================================
+        window.scrollToSection = function(sectionId) {
+            const el = document.getElementById(sectionId);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const input = el.querySelector('input[type="text"]');
+                if (input) setTimeout(() => input.focus(), 350);
+            }
+        };
+
+        function generateId(prefix = 'item') {
+            return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-slate-900 text-white border-slate-800',
+                error: 'bg-red-600 text-white border-red-700',
+                info: 'bg-blue-600 text-white border-blue-700'
+            };
+
+            toast.className = `toast-enter pointer-events-auto flex items-center justify-center text-center px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-bold ${colors[type] || colors.success}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-8px)';
+                toast.style.transition = 'all 0.2s ease';
+                setTimeout(() => toast.remove(), 220);
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' بايت';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' ك.ب';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' م.ب';
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            try {
+                return new Date(timestamp).toLocaleDateString('ar-IQ', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (_) {
+                return '';
+            }
+        }
+
+        function getBreadcrumbPath() {
+            const path = [];
+            let currentId = appState.currentFolderId;
+            const visited = new Set();
+
+            while (currentId && !visited.has(currentId)) {
+                visited.add(currentId);
+                const folder = appState.items.find(i => i.id === currentId && i.kind === 'folder');
+                if (folder) {
+                    path.unshift(folder);
+                    currentId = folder.parentId;
+                } else {
+                    break;
+                }
+            }
+            return path;
+        }
+
+        function getItemIconHtml(item) {
+            if (item.kind === 'folder') {
+                return `
+                    <span class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/80 shrink-0" aria-hidden="true">
+                        <svg class="w-7 h-7" viewBox="0 0 36 36" fill="none">
+                            <path d="M4 9C4 7.34315 5.34315 6 7 6H13.5858C14.1162 6 14.6249 6.21071 15 6.58579L17.4142 9H29C30.6569 9 32 10.3431 32 12V27C32 28.6569 30.6569 30 29 30H7C5.34315 30 4 28.6569 4 27V9Z" fill="#F59E0B"/>
+                            <path d="M4 13C4 11.8954 4.89543 11 6 11H30C31.1046 11 32 11.8954 32 13V27C32 28.6569 30.6569 30 29 30H7C5.34315 30 4 28.6569 4 27V13Z" fill="#FBBF24"/>
+                        </svg>
+                    </span>
+                `;
+            }
+
+            let badgeBg = 'bg-blue-50 text-blue-600 border-blue-200';
+            let label = 'DOC';
+
+            if (item.fileType === 'Word') {
+                badgeBg = 'bg-blue-50 text-blue-600 border-blue-200';
+                label = 'W';
+            } else if (item.fileType === 'Excel') {
+                badgeBg = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                label = 'X';
+            } else if (item.fileType === 'PDF') {
+                badgeBg = 'bg-red-50 text-red-600 border-red-200';
+                label = 'PDF';
+            }
+
+            const linkBadge = item.kind === 'link' 
+                ? `<span class="absolute -bottom-1.5 -left-1.5 bg-white border border-slate-200 rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-xs" title="رابط Google Drive">🔗</span>` 
+                : '';
+
+            return `
+                <span class="relative inline-flex items-center justify-center w-11 h-11 rounded-xl border font-extrabold text-xs shrink-0 ${badgeBg}">
+                    ${label}
+                    ${linkBadge}
+                </span>
+            `;
+        }
+
+        // ==========================================
+        // 4. تحديث وعرض الواجهة (Render)
+        // ==========================================
+        function renderAll() {
+            renderBreadcrumbs();
+            renderUploadDestination();
+            renderItemsList();
+        }
+
+        function renderBreadcrumbs() {
+            const container = document.getElementById('breadcrumbs-container');
+            const path = getBreadcrumbPath();
+
+            let html = `
+                <button 
+                    type="button" 
+                    onclick="navigateToFolder(null)" 
+                    class="min-h-[36px] px-2.5 py-1 rounded-lg bg-blue-50 text-[#2563eb] hover:bg-blue-100 cursor-pointer font-bold transition-colors"
+                >
+                    🏠 الرئيسية
+                </button>
+            `;
+
+            path.forEach((folder, idx) => {
+                const isLast = idx === path.length - 1;
+                html += `<span class="text-slate-400">/</span>`;
+                if (isLast) {
+                    html += `<span class="px-2.5 py-1 rounded-lg bg-slate-200/70 text-slate-800 font-bold">${escapeHtml(folder.name)}</span>`;
+                } else {
+                    html += `
+                        <button 
+                            type="button" 
+                            onclick="navigateToFolder('${folder.id}')" 
+                            class="min-h-[36px] px-2.5 py-1 rounded-lg text-[#2563eb] hover:bg-blue-50 cursor-pointer font-bold transition-colors"
+                        >
+                            ${escapeHtml(folder.name)}
+                        </button>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderUploadDestination() {
+            const label = document.getElementById('upload-destination-label');
+            const path = getBreadcrumbPath();
+            if (path.length === 0) {
+                label.textContent = 'الرفع سيكون إلى: الرئيسية';
+            } else {
+                const currentFolder = path[path.length - 1];
+                label.textContent = `الرفع سيكون إلى: ${currentFolder.name}`;
+            }
+        }
+
+        function renderItemsList() {
+            const listContainer = document.getElementById('items-list');
+            const counterEl = document.getElementById('items-counter');
+
+            const currentFolderItems = appState.items.filter(item => item.parentId === appState.currentFolderId);
+
+            const totalFolders = currentFolderItems.filter(i => i.kind === 'folder').length;
+            const totalFiles = currentFolderItems.filter(i => i.kind !== 'folder').length;
+            counterEl.textContent = `${totalFolders} مجلد و ${totalFiles} ملف`;
+
+            const query = appState.searchQuery.trim().toLowerCase();
+            const typeFilter = appState.typeFilter;
+
+            const filteredItems = currentFolderItems.filter(item => {
+                const matchesSearch = !query || item.name.toLowerCase().includes(query);
+                let matchesType = true;
+                if (typeFilter === 'folder') {
+                    matchesType = item.kind === 'folder';
+                } else if (typeFilter === 'drive') {
+                    matchesType = item.kind === 'link';
+                } else if (typeFilter !== 'all') {
+                    matchesType = item.kind !== 'folder' && item.fileType === typeFilter;
+                }
+                return matchesSearch && matchesType;
+            });
+
+            filteredItems.sort((a, b) => {
+                if (a.kind === 'folder' && b.kind !== 'folder') return -1;
+                if (a.kind !== 'folder' && b.kind === 'folder') return 1;
+                return (b.createdAt || 0) - (a.createdAt || 0);
+            });
+
+            if (filteredItems.length === 0) {
+                const emptyText = currentFolderItems.length === 0 
+                    ? 'هذا المجلد فارغ حالياً. يمكنك إنشاء مجلد جديد أو رفع ملفات من البطاقات أدناه.'
+                    : 'لا توجد نتائج تطابق بحثك أو التصفية المختارة.';
+                listContainer.innerHTML = `
+                    <div class="col-span-full app-card p-8 text-center text-slate-400 text-sm font-semibold">
+                        ${emptyText}
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filteredItems.map(item => {
+                const iconHtml = getItemIconHtml(item);
+                let subInfo = '';
+                let primaryActionBtn = '';
+
+                if (item.kind === 'folder') {
+                    const childrenCount = appState.items.filter(c => c.parentId === item.id).length;
+                    subInfo = `<span class="text-xs text-slate-400 font-medium block mt-0.5">${childrenCount} عناصر بالداخل</span>`;
+                    primaryActionBtn = `
+                        <button 
+                            type="button" 
+                            onclick="navigateToFolder('${item.id}')" 
+                            class="touch-btn flex-1 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+                        >
+                            فتح
+                        </button>
+                    `;
+                } else if (item.kind === 'link') {
+                    subInfo = `<span class="text-xs text-emerald-600 font-semibold block mt-0.5">رابط Drive • ${item.fileType}</span>`;
+                    primaryActionBtn = `
+                        <a 
+                            href="${escapeHtml(item.url)}" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="touch-btn flex-1 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs sm:text-sm transition-colors"
+                        >
+                            فتح الرابط
+                        </a>
+                    `;
+                } else if (item.kind === 'file') {
+                    const sizeText = item.size ? ` • ${formatFileSize(item.size)}` : '';
+                    subInfo = `<span class="text-xs text-slate-400 font-medium block mt-0.5">${item.fileType}${sizeText}</span>`;
+                    primaryActionBtn = `
+                        <button 
+                            type="button" 
+                            onclick="openUploadedFile('${item.id}')" 
+                            class="touch-btn flex-1 px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+                        >
+                            معاينة
+                        </button>
+                    `;
+                }
+
+                return `
+                    <article class="app-card app-card-hover p-4 flex flex-col justify-between gap-3.5">
+                        <!-- الجزء العلوي من البطاقة: الأيقونة والاسم -->
+                        <div class="flex items-center gap-3 min-w-0 ${item.kind === 'folder' ? 'cursor-pointer' : ''}" ${item.kind === 'folder' ? `onclick="navigateToFolder('${item.id}')"` : ''}>
+                            ${iconHtml}
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-[15px] sm:text-base font-bold text-slate-800 truncate" title="${escapeHtml(item.name)}">
+                                    ${escapeHtml(item.name)}
+                                </h3>
+                                ${subInfo}
+                            </div>
+                        </div>
+
+                        <!-- الجزء السفلي: أزرار الإجراءات بمساحات لمس مريحة للأصابع -->
+                        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+                            ${primaryActionBtn}
+                            <button 
+                                type="button" 
+                                onclick="openRenameModal('${item.id}')" 
+                                title="تعديل الاسم"
+                                class="touch-btn px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                                تعديل
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="confirmDeleteItem('${item.id}')" 
+                                title="حذف"
+                                class="touch-btn px-3 py-2 rounded-xl border border-red-100 bg-red-50/50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                                حذف
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // 5. إجراءات المجلدات والملفات والروابط
+        // ==========================================
+        window.navigateToFolder = function(folderId) {
+            appState.currentFolderId = folderId;
+            appState.searchQuery = '';
+            document.getElementById('search-input').value = '';
+            document.getElementById('clear-search-btn').classList.add('hidden');
+            renderAll();
+        };
+
+        function handleCreateFolder() {
+            const input = document.getElementById('new-folder-name');
+            const name = input.value.trim();
+
+            if (!name) {
+                showToast('يرجى كتابة اسم المجلد أولاً', 'error');
+                input.focus();
+                return;
+            }
+
+            const exists = appState.items.some(
+                i => i.parentId === appState.currentFolderId && i.kind === 'folder' && i.name === name
+            );
+            if (exists) {
+                showToast('يوجد مجلد بنفس هذا الاسم في هذا المكان', 'error');
+                input.focus();
+                return;
+            }
+
+            appState.items.push({
+                id: generateId('folder'),
+                parentId: appState.currentFolderId,
+                kind: 'folder',
+                name: name,
+                fileType: 'folder',
+                createdAt: Date.now()
+            });
+
+            saveState();
+            input.value = '';
+            renderAll();
+            showToast(`تم إنشاء المجلد "${name}" بنجاح`);
+        }
+
+        // تعديل الاسم
+        window.openRenameModal = function(itemId) {
+            const item = appState.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            renamingItemId = itemId;
+            const input = document.getElementById('rename-input');
+            input.value = item.name;
+
+            const modal = document.getElementById('rename-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 50);
+        };
+
+        function closeRenameModal() {
+            const modal = document.getElementById('rename-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            renamingItemId = null;
+        }
+
+        function handleSaveRename() {
+            if (!renamingItemId) return;
+            const item = appState.items.find(i => i.id === renamingItemId);
+            if (!item) return;
+
+            const newName = document.getElementById('rename-input').value.trim();
+            if (!newName) {
+                showToast('يرجى إدخال اسم صالح', 'error');
+                return;
+            }
+
+            item.name = newName;
+            saveState();
+            closeRenameModal();
+            renderAll();
+            showToast('تم تعديل الاسم بنجاح');
+        }
+
+        function detectFileType(fileName) {
+            const lower = fileName.toLowerCase();
+            if (lower.endsWith('.docx')) return 'Word';
+            if (lower.endsWith('.xlsx')) return 'Excel';
+            if (lower.endsWith('.pdf')) return 'PDF';
+            return null;
+        }
+
+        function handleFilesSelected(fileList) {
+            const files = Array.from(fileList || []);
+            if (files.length === 0) return;
+
+            let validAdded = 0;
+
+            files.forEach(file => {
+                const lowerName = file.name.toLowerCase();
+
+                if (lowerName.endsWith('.doc')) {
+                    showToast(`الملف "${file.name}" بصيغة .doc القديمة، يرجى حفظه كـ .docx أولاً`, 'error');
+                    return;
+                }
+
+                const detectedType = detectFileType(file.name);
+                if (!detectedType) {
+                    showToast(`صيغة الملف "${file.name}" غير مدعومة. المسموح: docx, xlsx, pdf`, 'error');
+                    return;
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast(`حجم الملف "${file.name}" يتجاوز الحد الأقصى (5 ميغابايت)`, 'error');
+                    return;
+                }
+
+                const alreadyStaged = stagedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!alreadyStaged) {
+                    stagedFiles.push(file);
+                    validAdded++;
+                }
+            });
+
+            if (validAdded > 0) {
+                updateStagedFilesUI();
+            }
+        }
+
+        function updateStagedFilesUI() {
+            const previewBox = document.getElementById('selected-files-preview');
+            const listEl = document.getElementById('selected-files-list');
+            const uploadBtn = document.getElementById('upload-files-btn');
+
+            if (stagedFiles.length === 0) {
+                previewBox.classList.add('hidden');
+                uploadBtn.disabled = true;
+                uploadBtn.className = 'touch-btn w-full bg-blue-300 text-white font-bold text-sm sm:text-[15px] px-5 py-2.5 rounded-xl transition-all cursor-not-allowed';
+                uploadBtn.textContent = 'ارفع الملفات المختارة';
+                return;
+            }
+
+            previewBox.classList.remove('hidden');
+            listEl.innerHTML = stagedFiles.map((file, index) => `
+                <li class="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                    <span class="truncate font-medium text-xs text-slate-800">${escapeHtml(file.name)} (${formatFileSize(file.size)})</span>
+                    <button type="button" onclick="removeStagedFile(${index})" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1 cursor-pointer">✕</button>
+                </li>
+            `).join('');
+
+            uploadBtn.disabled = false;
+            uploadBtn.className = 'touch-btn w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-[0.99] text-white font-bold text-sm sm:text-[15px] px-5 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer';
+            uploadBtn.textContent = `ارفع الملفات المختارة (${stagedFiles.length})`;
+        }
+
+        window.removeStagedFile = function(index) {
+            stagedFiles.splice(index, 1);
+            updateStagedFilesUI();
+        };
+
+        async function handleUploadStagedFiles() {
+            if (stagedFiles.length === 0) return;
+
+            const uploadBtn = document.getElementById('upload-files-btn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'جاري الرفع والحفظ...';
+
+            let uploadedCount = 0;
+
+            for (const file of stagedFiles) {
+                const fileId = generateId('file');
+                const fileType = detectFileType(file.name);
+                const saved = await saveFileBlob(fileId, file);
+
+                if (saved) {
+                    appState.items.push({
+                        id: fileId,
+                        parentId: appState.currentFolderId,
+                        kind: 'file',
+                        name: file.name,
+                        fileType: fileType,
+                        size: file.size,
+                        mimeType: file.type,
+                        createdAt: Date.now()
+                    });
+                    uploadedCount++;
+                }
+            }
+
+            saveState();
+            stagedFiles = [];
+            document.getElementById('file-input').value = '';
+            updateStagedFilesUI();
+            renderAll();
+
+            if (uploadedCount > 0) {
+                showToast(`تم رفع وحفظ ${uploadedCount} ملف بنجاح`);
+            } else {
+                showToast('تعذر حفظ الملفات في المتصفح', 'error');
+            }
+        }
+
+        function handleAddDriveLink() {
+            const nameInput = document.getElementById('drive-file-name');
+            const typeSelect = document.getElementById('drive-file-type');
+            const urlInput = document.getElementById('drive-file-url');
+
+            const name = nameInput.value.trim();
+            const fileType = typeSelect.value;
+            let url = urlInput.value.trim();
+
+            if (!name) {
+                showToast('يرجى إدخال اسم الملف', 'error');
+                nameInput.focus();
+                return;
+            }
+
+            if (!url) {
+                showToast('يرجى لصق رابط Google Drive', 'error');
+                urlInput.focus();
+                return;
+            }
+
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            try {
+                new URL(url);
+            } catch (_) {
+                showToast('الرابط المدخل غير صالح، يرجى التحقق منه', 'error');
+                urlInput.focus();
+                return;
+            }
+
+            appState.items.push({
+                id: generateId('link'),
+                parentId: appState.currentFolderId,
+                kind: 'link',
+                name: name,
+                fileType: fileType,
+                url: url,
+                createdAt: Date.now()
+            });
+
+            saveState();
+            nameInput.value = '';
+            urlInput.value = '';
+            renderAll();
+            showToast(`تمت إضافة رابط "${name}" بنجاح`);
+        }
+
+        // معاينة الملفات المرفوعة (PDF مباشرة + تفاصيل ومحتوى Word و Excel)
+        window.openUploadedFile = async function(fileId) {
+            const item = appState.items.find(i => i.id === fileId);
+            if (!item) return;
+
+            const record = await getFileBlob(fileId);
+            if (!record || !record.data) {
+                showToast('تعذر العثور على بيانات الملف المحفوظة', 'error');
+                return;
+            }
+
+            const blob = new Blob([record.data], { type: record.type || 'application/octet-stream' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            const modal = document.getElementById('preview-modal');
+            const titleEl = document.getElementById('preview-title');
+            const bodyEl = document.getElementById('preview-body');
+            const downloadBtn = document.getElementById('preview-download-btn');
+
+            titleEl.textContent = item.name;
+            downloadBtn.href = blobUrl;
+            downloadBtn.download = item.name;
+
+            if (item.fileType === 'PDF') {
+                bodyEl.innerHTML = `<iframe src="${blobUrl}" class="w-full h-[65vh] rounded-xl border border-slate-200 bg-white"></iframe>`;
+            } else {
+                const isWord = item.fileType === 'Word';
+                const badgeStyle = isWord 
+                    ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-600';
+                const typeLabel = isWord ? 'مستند Microsoft Word (.docx)' : 'جدول بيانات Microsoft Excel (.xlsx)';
+
+                bodyEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 w-full max-w-md text-center space-y-4 shadow-xs">
+                        <div class="mx-auto w-16 h-16 rounded-2xl border flex items-center justify-center font-extrabold text-2xl ${badgeStyle}">
+                            ${isWord ? 'W' : 'X'}
+                        </div>
+                        <div class="space-y-1.5">
+                            <h4 class="font-bold text-slate-900 text-base break-words">${escapeHtml(item.name)}</h4>
+                            <p class="text-xs font-semibold text-slate-500">${typeLabel}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3.5 text-xs text-slate-600 space-y-1.5 text-right border border-slate-100">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">حجم الملف:</span>
+                                <span class="font-bold text-slate-800">${formatFileSize(item.size)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">تاريخ الحفظ:</span>
+                                <span class="font-bold text-slate-800">${formatDate(item.createdAt) || 'محفوظ محلياً'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">حالة التخزين:</span>
+                                <span class="font-bold text-emerald-600">محفوظ بأمان في المتصفح ✓</span>
+                            </div>
+                        </div>
+                        <a href="${blobUrl}" download="${escapeHtml(item.name)}" class="touch-btn w-full py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors">
+                            تحميل الملف إلى جهازك
+                        </a>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        function collectDescendantsIds(folderId) {
+            let ids = [folderId];
+            const children = appState.items.filter(i => i.parentId === folderId);
+            children.forEach(child => {
+                if (child.kind === 'folder') {
+                    ids = ids.concat(collectDescendantsIds(child.id));
+                } else {
+                    ids.push(child.id);
+                }
+            });
+            return ids;
+        }
+
+        window.confirmDeleteItem = function(itemId) {
+            const item = appState.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            const isFolder = item.kind === 'folder';
+            const title = isFolder ? 'حذف المجلد' : 'حذف الملف';
+            const msg = isFolder 
+                ? `هل أنت متأكد من حذف المجلد "${item.name}" وجميع محتوياته؟`
+                : `هل أنت متأكد من حذف "${item.name}"؟`;
+
+            openConfirmModal(title, msg, async () => {
+                const idsToDelete = isFolder ? collectDescendantsIds(itemId) : [itemId];
+                
+                for (const id of idsToDelete) {
+                    const target = appState.items.find(i => i.id === id);
+                    if (target && target.kind === 'file') {
+                        await deleteFileBlob(id);
+                    }
+                }
+
+                appState.items = appState.items.filter(i => !idsToDelete.includes(i.id));
+                saveState();
+                renderAll();
+                showToast('تم الحذف بنجاح');
+            });
+        };
+
+        // ==========================================
+        // 6. نافذة التأكيد والنسخ الاحتياطي
+        // ==========================================
+        function openConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            pendingConfirmAction = onConfirm;
+
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingConfirmAction = null;
+        }
+
+        function handleExportBackup() {
+            const dataStr = JSON.stringify({
+                app: 'ملفي جاهز الحفظ',
+                exportedAt: new Date().toISOString(),
+                items: appState.items
+            }, null, 2);
+
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ملفي_جاهز_الحفظ_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تصدير النسخة الاحتياطية بنجاح');
+        }
+
+        function handleImportBackup(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed && Array.isArray(parsed.items)) {
+                        appState.items = parsed.items;
+                        appState.currentFolderId = null;
+                        saveState();
+                        renderAll();
+                        showToast('تم استيراد النسخة الاحتياطية بنجاح');
+                    } else {
+                        showToast('ملف النسخة الاحتياطية غير صالح', 'error');
+                    }
+                } catch (err) {
+                    showToast('تعذر قراءة ملف JSON', 'error');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function handleResetApp() {
+            openConfirmModal(
+                'إعادة ضبط البيانات',
+                'سيتم حذف جميع المجلدات والملفات والروابط والعودة للحالة الافتراضية. هل تريد المتابعة؟',
+                async () => {
+                    await clearAllFileBlobs();
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem('malafi_jahiz_alhifz_v1');
+                    appState.currentFolderId = null;
+                    appState.searchQuery = '';
+                    appState.typeFilter = 'all';
+                    document.getElementById('search-input').value = '';
+                    document.getElementById('type-filter').value = 'all';
+                    loadState();
+                    renderAll();
+                    showToast('تمت إعادة ضبط التطبيق إلى الحالة الافتراضية');
+                }
+            );
+        }
+
+        // ==========================================
+        // 7. ربط الأحداث عند تحميل الصفحة
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            renderAll();
+
+            // البحث الفوري
+            const searchInput = document.getElementById('search-input');
+            const clearSearchBtn = document.getElementById('clear-search-btn');
+
+            searchInput.addEventListener('input', (e) => {
+                appState.searchQuery = e.target.value;
+                if (appState.searchQuery.length > 0) {
+                    clearSearchBtn.classList.remove('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                }
+                renderItemsList();
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                appState.searchQuery = '';
+                clearSearchBtn.classList.add('hidden');
+                renderItemsList();
+                searchInput.focus();
+            });
+
+            // التصفية حسب النوع
+            document.getElementById('type-filter').addEventListener('change', (e) => {
+                appState.typeFilter = e.target.value;
+                renderItemsList();
+            });
+
+            // إنشاء مجلد
+            document.getElementById('create-folder-btn').addEventListener('click', handleCreateFolder);
+            document.getElementById('new-folder-name').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateFolder();
+                }
+            });
+
+            // السحب والإفلات واختيار الملفات
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                handleFilesSelected(e.target.files);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.add('drop-zone-active');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.remove('drop-zone-active');
+                });
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                if (e.dataTransfer && e.dataTransfer.files) {
+                    handleFilesSelected(e.dataTransfer.files);
+                }
+            });
+
+            document.getElementById('clear-selected-files').addEventListener('click', () => {
+                stagedFiles = [];
+                fileInput.value = '';
+                updateStagedFilesUI();
+            });
+
+            document.getElementById('upload-files-btn').addEventListener('click', handleUploadStagedFiles);
+
+            // إضافة رابط Google Drive
+            document.getElementById('add-drive-link-btn').addEventListener('click', handleAddDriveLink);
+            document.getElementById('drive-file-url').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddDriveLink();
+                }
+            });
+
+            // نافذة تعديل الاسم
+            document.getElementById('rename-cancel-btn').addEventListener('click', closeRenameModal);
+            document.getElementById('rename-save-btn').addEventListener('click', handleSaveRename);
+            document.getElementById('rename-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveRename();
+                }
+            });
+            document.getElementById('rename-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'rename-modal') closeRenameModal();
+            });
+
+            // نافذة التأكيد
+            document.getElementById('confirm-cancel-btn').addEventListener('click', closeConfirmModal);
+            document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
+                if (typeof pendingConfirmAction === 'function') {
+                    await pendingConfirmAction();
+                }
+                closeConfirmModal();
+            });
+            document.getElementById('confirm-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'confirm-modal') closeConfirmModal();
+            });
+
+            // نافذة المعاينة
+            const closePreview = () => {
+                const modal = document.getElementById('preview-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('preview-body').innerHTML = '';
+            };
+            document.getElementById('preview-close-btn').addEventListener('click', closePreview);
+            document.getElementById('preview-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'preview-modal') closePreview();
+            });
+
+            // النسخ الاحتياطي وإعادة الضبط
+            document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
+            document.getElementById('import-backup-input').addEventListener('change', handleImportBackup);
+            document.getElementById('reset-app-btn').addEventListener('click', handleResetApp);
+        });
+    </script>
 </body>
 </html>
