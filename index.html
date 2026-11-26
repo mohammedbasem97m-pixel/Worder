@@ -11,20 +11,22 @@
     <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'sans-serif'],
-                    },
-                    colors: {
-                        bgMain: '#f8fafc',
-                        borderLight: '#e2e8f0',
-                        primaryBlue: '#2563eb',
-                        primaryBlueHover: '#1d4ed8',
+        if (window.tailwind) {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Cairo', 'sans-serif'],
+                        },
+                        colors: {
+                            bgMain: '#f8fafc',
+                            borderLight: '#e2e8f0',
+                            primaryBlue: '#2563eb',
+                            primaryBlueHover: '#1d4ed8',
+                        }
                     }
                 }
-            }
+            };
         }
     </script>
     <style>
@@ -79,7 +81,7 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
-        /* ضمان مساحة لمس مريحة للأصابع على الموبايل */
+        /* ضمان مساحة لمس مريحة للأصابع على الموبايل (44px) */
         .touch-btn {
             min-height: 44px;
             display: inline-flex;
@@ -106,6 +108,41 @@
         .toast-enter {
             animation: slideDownFade 0.25s ease-out forwards;
         }
+
+        /* حركة تبديل النص الترحيبي بانسيابية */
+        .rotating-phrase {
+            display: inline-block;
+            transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+        }
+        .phrase-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .phrase-exit {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .phrase-enter {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: none;
+        }
+
+        /* حركة القائمة المنسدلة لزر الرئيسية */
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .dropdown-menu-open {
+            animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen py-5 px-3.5 sm:px-6 lg:px-8 sm:py-8">
@@ -116,35 +153,72 @@
     <!-- الحاوية الرئيسية: تتكيف تلقائياً من عرض الموبايل الكامل إلى 1100px على الحاسبة -->
     <main class="w-full max-w-[1100px] mx-auto space-y-5 sm:space-y-6">
 
-        <!-- 1. الهيدر العلوي بتدرج أزرق فاتح مريح -->
-        <header class="app-card bg-gradient-to-l from-sky-50 via-white to-blue-50/70 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="text-center sm:text-right space-y-1">
-                <div class="inline-flex items-center justify-center sm:justify-start gap-2.5">
-                    <span class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                        </svg>
-                    </span>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                        ملفي جاهز الحفظ
-                    </h1>
-                </div>
-                <p class="text-xs sm:text-sm text-slate-500 font-medium">
-                    إدارة وتنظيم المجلدات، ملفات Word و Excel و PDF، وروابط Google Drive في مكان واحد
-                </p>
+        <!-- 1. الهيدر العلوي: يحتوي فقط على العنوان المتحرك وزر الرئيسية الموحد -->
+        <header class="app-card bg-gradient-to-l from-sky-50 via-white to-blue-50/70 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-30">
+            <div class="text-center sm:text-right flex items-center justify-center sm:justify-start min-h-[44px]" aria-live="polite">
+                <h1 id="animated-hero-phrase" class="rotating-phrase phrase-visible text-[1.35rem] sm:text-[1.85rem] font-extrabold text-[#0284c7] tracking-tight leading-snug">
+                    حفظ الملف آمن
+                </h1>
             </div>
 
-            <!-- أزرار الوصول السريع للإضافة (تظهر بوضوح على الحاسبة والموبايل) -->
-            <div class="grid grid-cols-3 sm:flex items-center gap-2 shrink-0">
-                <button type="button" onclick="scrollToSection('section-new-folder')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer gap-1.5">
-                    <span>+ مجلد</span>
+            <!-- زر الرئيسية الموحد مع القائمة المنسدلة -->
+            <div id="main-actions-dropdown-wrapper" class="relative w-full sm:w-auto flex justify-center sm:justify-end shrink-0">
+                <button 
+                    type="button" 
+                    id="main-menu-toggle-btn"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="main-actions-dropdown"
+                    class="touch-btn w-full sm:w-auto min-w-[165px] px-5 py-2.5 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-[0.99] text-white font-bold text-sm sm:text-[15px] transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2.5"
+                >
+                    <span>الرئيسية</span>
+                    <svg id="main-menu-chevron" class="w-4 h-4 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </button>
-                <button type="button" onclick="scrollToSection('section-upload-files')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer gap-1.5">
-                    <span>+ رفع ملف</span>
-                </button>
-                <button type="button" onclick="scrollToSection('section-drive-link')" class="touch-btn px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-xs sm:text-sm transition-all cursor-pointer gap-1.5">
-                    <span>+ رابط Drive</span>
-                </button>
+
+                <!-- القائمة المنسدلة التي تجمع الأزرار الثلاثة -->
+                <div 
+                    id="main-actions-dropdown" 
+                    role="menu"
+                    class="hidden absolute top-full mt-2 right-0 sm:right-auto sm:left-0 w-full sm:w-60 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 z-40 space-y-1 text-right"
+                >
+                    <button 
+                        type="button" 
+                        role="menuitem"
+                        onclick="selectMainMenuAction('section-new-folder')" 
+                        class="touch-btn w-full px-3.5 py-2.5 rounded-xl hover:bg-blue-50/80 active:bg-blue-100/70 text-slate-800 font-bold text-sm transition-colors cursor-pointer flex items-center justify-start gap-3"
+                    >
+                        <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0 text-base">
+                            📁
+                        </span>
+                        <span class="text-blue-700">+ مجلد</span>
+                    </button>
+
+                    <button 
+                        type="button" 
+                        role="menuitem"
+                        onclick="selectMainMenuAction('section-upload-files')" 
+                        class="touch-btn w-full px-3.5 py-2.5 rounded-xl hover:bg-sky-50/80 active:bg-sky-100/70 text-slate-800 font-bold text-sm transition-colors cursor-pointer flex items-center justify-start gap-3"
+                    >
+                        <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0 text-base">
+                            ⬆️
+                        </span>
+                        <span class="text-sky-700">+ رفع ملف</span>
+                    </button>
+
+                    <button 
+                        type="button" 
+                        role="menuitem"
+                        onclick="selectMainMenuAction('section-drive-link')" 
+                        class="touch-btn w-full px-3.5 py-2.5 rounded-xl hover:bg-emerald-50/80 active:bg-emerald-100/70 text-slate-800 font-bold text-sm transition-colors cursor-pointer flex items-center justify-start gap-3"
+                    >
+                        <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0 text-base">
+                            🔗
+                        </span>
+                        <span class="text-emerald-700">+ رابط Drive</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -197,7 +271,6 @@
                         <option value="Word">Word</option>
                         <option value="Excel">Excel</option>
                         <option value="PDF">PDF</option>
-                        <option value="drive">رابط Drive</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,7 +463,7 @@
 
     </main>
 
-    <!-- نافذة تعديل اسم المجلد أو الملف (تأخذ 94vw على الموبايل ومقاس مريح على الحاسبة) -->
+    <!-- نافذة تعديل اسم المجلد أو الملف -->
     <div id="rename-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/45 backdrop-blur-[1px] p-3">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-[94vw] max-w-md p-5 sm:p-6 space-y-4">
             <h3 class="text-lg font-bold text-slate-900">تعديل الاسم</h3>
@@ -428,7 +501,7 @@
         </div>
     </div>
 
-    <!-- نافذة معاينة الملفات المرفوعة (94vw على الموبايل و max-w-3xl على الحاسبة) -->
+    <!-- نافذة معاينة الملفات المرفوعة -->
     <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/55 backdrop-blur-[2px] p-2.5 sm:p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-[94vw] max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-slate-200 gap-2">
@@ -450,15 +523,19 @@
 
     <script>
         /**
-         * تطبيق "ملفي جاهز الحفظ" - نسخة متجاوبة بالكامل (Mobile + Desktop)
-         * يدعم إدارة المجلدات المتداخلة، تعديل الأسماء، رفع وحفظ الملفات (Word, Excel, PDF) في IndexedDB،
-         * معاينة PDF واستخراج معاينة نصية/هيكلية لملفات Word و Excel، وإضافة روابط Google Drive.
+         * تطبيق "ملفي جاهز الحفظ" - نسخة متجاوبة بالكامل ومحصّنة ضد قيود المتصفحات
+         * يعتمد على IndexedDB مع نظام Fallback تلقائي في الذاكرة و localStorage لضمان عدم توقف الموقع
+         * في المتصفحات المقيدة أو وضع التصفح الخفي أو عند الاستضافة على GitHub Pages و Netlify.
          */
 
         const STORAGE_KEY = 'malafi_jahiz_alhifz_v2';
         const DB_NAME = 'MalafiFilesDB';
         const DB_STORE = 'files_blobs';
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 ميجابايت
+
+        // مخازن بديلة آمنة في الذاكرة في حال حظر المتصفح لـ localStorage أو IndexedDB
+        const memoryStorageFallback = {};
+        const memoryBlobsFallback = new Map();
 
         let appState = {
             items: [],
@@ -472,40 +549,84 @@
         let renamingItemId = null;
 
         // ==========================================
-        // 1. إدارة IndexedDB لتخزين محتوى الملفات المرفوعة
+        // 1. طبقة التخزين المرنة (IndexedDB + localStorage + Memory Fallback)
         // ==========================================
+        function safeGetStorage(key) {
+            try {
+                return window.localStorage.getItem(key);
+            } catch (_) {
+                return memoryStorageFallback[key] || null;
+            }
+        }
+
+        function safeSetStorage(key, value) {
+            memoryStorageFallback[key] = value;
+            try {
+                window.localStorage.setItem(key, value);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function safeRemoveStorage(key) {
+            delete memoryStorageFallback[key];
+            try {
+                window.localStorage.removeItem(key);
+            } catch (_) {
+                // تجاهل الخطأ في الوضع المقيد
+            }
+        }
+
         function openFilesDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(DB_STORE)) {
-                        db.createObjectStore(DB_STORE, { keyPath: 'id' });
+                try {
+                    if (!window.indexedDB) {
+                        reject(new Error('IndexedDB غير مدعوم'));
+                        return;
                     }
-                };
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                    const request = window.indexedDB.open(DB_NAME, 1);
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains(DB_STORE)) {
+                            db.createObjectStore(DB_STORE, { keyPath: 'id' });
+                        }
+                    };
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error || new Error('فشل فتح IndexedDB'));
+                } catch (err) {
+                    reject(err);
+                }
             });
         }
 
         async function saveFileBlob(id, file) {
             try {
-                const db = await openFilesDB();
                 const arrayBuffer = await file.arrayBuffer();
-                return new Promise((resolve, reject) => {
-                    const tx = db.transaction(DB_STORE, 'readwrite');
-                    const store = tx.objectStore(DB_STORE);
-                    store.put({
-                        id: id,
-                        name: file.name,
-                        type: file.type,
-                        data: arrayBuffer
+                const record = {
+                    id: id,
+                    name: file.name,
+                    type: file.type,
+                    data: arrayBuffer
+                };
+                // حفظ نسخة احتياطية فورية في الذاكرة
+                memoryBlobsFallback.set(id, record);
+
+                try {
+                    const db = await openFilesDB();
+                    await new Promise((resolve, reject) => {
+                        const tx = db.transaction(DB_STORE, 'readwrite');
+                        const store = tx.objectStore(DB_STORE);
+                        store.put(record);
+                        tx.oncomplete = () => resolve(true);
+                        tx.onerror = () => reject(tx.error);
                     });
-                    tx.oncomplete = () => resolve(true);
-                    tx.onerror = () => reject(tx.error);
-                });
+                } catch (_) {
+                    // الاستمرار بسلاسة عبر memoryBlobsFallback إذا كان IndexedDB محظوراً
+                }
+                return true;
             } catch (err) {
-                console.error('خطأ في حفظ الملف في IndexedDB:', err);
+                console.error('خطأ في قراءة وحفظ الملف:', err);
                 return false;
             }
         }
@@ -513,54 +634,56 @@
         async function getFileBlob(id) {
             try {
                 const db = await openFilesDB();
-                return new Promise((resolve, reject) => {
+                const record = await new Promise((resolve, reject) => {
                     const tx = db.transaction(DB_STORE, 'readonly');
                     const store = tx.objectStore(DB_STORE);
                     const req = store.get(id);
                     req.onsuccess = () => resolve(req.result || null);
                     req.onerror = () => reject(req.error);
                 });
-            } catch (err) {
-                console.error('خطأ في استرجاع الملف:', err);
-                return null;
+                if (record) return record;
+            } catch (_) {
+                // الرجوع للمخزن البديل في الذاكرة
             }
+            return memoryBlobsFallback.get(id) || null;
         }
 
         async function deleteFileBlob(id) {
+            memoryBlobsFallback.delete(id);
             try {
                 const db = await openFilesDB();
-                return new Promise((resolve) => {
+                return await new Promise((resolve) => {
                     const tx = db.transaction(DB_STORE, 'readwrite');
                     tx.objectStore(DB_STORE).delete(id);
                     tx.oncomplete = () => resolve(true);
                     tx.onerror = () => resolve(false);
                 });
-            } catch (err) {
-                return false;
+            } catch (_) {
+                return true;
             }
         }
 
         async function clearAllFileBlobs() {
+            memoryBlobsFallback.clear();
             try {
                 const db = await openFilesDB();
-                return new Promise((resolve) => {
+                return await new Promise((resolve) => {
                     const tx = db.transaction(DB_STORE, 'readwrite');
                     tx.objectStore(DB_STORE).clear();
                     tx.oncomplete = () => resolve(true);
                     tx.onerror = () => resolve(false);
                 });
-            } catch (err) {
-                return false;
+            } catch (_) {
+                return true;
             }
         }
 
         // ==========================================
-        // 2. إدارة الحالة والتخزين المحلي (localStorage)
+        // 2. إدارة الحالة والتخزين المحلي
         // ==========================================
         function loadState() {
             try {
-                // الترحيل السلس من النسخة السابقة إن وجدت
-                const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('malafi_jahiz_alhifz_v1');
+                const saved = safeGetStorage(STORAGE_KEY) || safeGetStorage('malafi_jahiz_alhifz_v1');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (Array.isArray(parsed.items)) {
@@ -588,18 +711,41 @@
         }
 
         function saveState() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    items: appState.items
-                }));
-            } catch (e) {
-                showToast('حدث خطأ أثناء حفظ البيانات في المتصفح', 'error');
-            }
+            safeSetStorage(STORAGE_KEY, JSON.stringify({
+                items: appState.items
+            }));
         }
 
         // ==========================================
-        // 3. دوال مساعدة (التنقل، الأيقونات، التنبيهات)
+        // 3. دوال مساعدة (القائمة المنسدلة، التنقل، الأيقونات، التنبيهات)
         // ==========================================
+        function toggleMainMenu(forceState) {
+            const dropdown = document.getElementById('main-actions-dropdown');
+            const toggleBtn = document.getElementById('main-menu-toggle-btn');
+            const chevron = document.getElementById('main-menu-chevron');
+            if (!dropdown || !toggleBtn) return;
+
+            const isCurrentlyOpen = !dropdown.classList.contains('hidden');
+            const shouldOpen = typeof forceState === 'boolean' ? forceState : !isCurrentlyOpen;
+
+            if (shouldOpen) {
+                dropdown.classList.remove('hidden');
+                dropdown.classList.add('dropdown-menu-open');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                dropdown.classList.add('hidden');
+                dropdown.classList.remove('dropdown-menu-open');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
+        window.selectMainMenuAction = function(sectionId) {
+            toggleMainMenu(false);
+            scrollToSection(sectionId);
+        };
+
         window.scrollToSection = function(sectionId) {
             const el = document.getElementById(sectionId);
             if (el) {
@@ -615,6 +761,7 @@
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             
             const colors = {
@@ -729,6 +876,7 @@
 
         function renderBreadcrumbs() {
             const container = document.getElementById('breadcrumbs-container');
+            if (!container) return;
             const path = getBreadcrumbPath();
 
             let html = `
@@ -764,6 +912,7 @@
 
         function renderUploadDestination() {
             const label = document.getElementById('upload-destination-label');
+            if (!label) return;
             const path = getBreadcrumbPath();
             if (path.length === 0) {
                 label.textContent = 'الرفع سيكون إلى: الرئيسية';
@@ -776,6 +925,7 @@
         function renderItemsList() {
             const listContainer = document.getElementById('items-list');
             const counterEl = document.getElementById('items-counter');
+            if (!listContainer || !counterEl) return;
 
             const currentFolderItems = appState.items.filter(item => item.parentId === appState.currentFolderId);
 
@@ -791,8 +941,6 @@
                 let matchesType = true;
                 if (typeFilter === 'folder') {
                     matchesType = item.kind === 'folder';
-                } else if (typeFilter === 'drive') {
-                    matchesType = item.kind === 'link';
                 } else if (typeFilter !== 'all') {
                     matchesType = item.kind !== 'folder' && item.fileType === typeFilter;
                 }
@@ -904,8 +1052,10 @@
         window.navigateToFolder = function(folderId) {
             appState.currentFolderId = folderId;
             appState.searchQuery = '';
-            document.getElementById('search-input').value = '';
-            document.getElementById('clear-search-btn').classList.add('hidden');
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search-btn');
+            if (searchInput) searchInput.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
             renderAll();
         };
 
@@ -1154,7 +1304,7 @@
             showToast(`تمت إضافة رابط "${name}" بنجاح`);
         }
 
-        // معاينة الملفات المرفوعة (PDF مباشرة + تفاصيل ومحتوى Word و Excel)
+        // معاينة الملفات المرفوعة
         window.openUploadedFile = async function(fileId) {
             const item = appState.items.find(i => i.id === fileId);
             if (!item) return;
@@ -1206,7 +1356,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">حالة التخزين:</span>
-                                <span class="font-bold text-emerald-600">محفوظ بأمان في المتصفح ✓</span>
+                                <span class="font-bold text-emerald-600">محفوظ بأمان ✓</span>
                             </div>
                         </div>
                         <a href="${blobUrl}" download="${escapeHtml(item.name)}" class="touch-btn w-full py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors">
@@ -1328,8 +1478,8 @@
                 'سيتم حذف جميع المجلدات والملفات والروابط والعودة للحالة الافتراضية. هل تريد المتابعة؟',
                 async () => {
                     await clearAllFileBlobs();
-                    localStorage.removeItem(STORAGE_KEY);
-                    localStorage.removeItem('malafi_jahiz_alhifz_v1');
+                    safeRemoveStorage(STORAGE_KEY);
+                    safeRemoveStorage('malafi_jahiz_alhifz_v1');
                     appState.currentFolderId = null;
                     appState.searchQuery = '';
                     appState.typeFilter = 'all';
@@ -1343,11 +1493,74 @@
         }
 
         // ==========================================
-        // 7. ربط الأحداث عند تحميل الصفحة
+        // 7. تحريك النص الترحيبي وتهيئة الأحداث عند التحميل
         // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
+        function startHeroTextAnimation() {
+            const phraseEl = document.getElementById('animated-hero-phrase');
+            if (!phraseEl) return;
+
+            const phrases = [
+                'حفظ الملف آمن',
+                'حفظ الملف جاهز',
+                'حفظ الملف بالكامل'
+            ];
+            let currentIndex = 0;
+
+            setInterval(() => {
+                phraseEl.classList.remove('phrase-visible');
+                phraseEl.classList.add('phrase-exit');
+
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % phrases.length;
+                    phraseEl.textContent = phrases[currentIndex];
+
+                    phraseEl.classList.remove('phrase-exit');
+                    phraseEl.classList.add('phrase-enter');
+
+                    void phraseEl.offsetWidth;
+
+                    phraseEl.classList.remove('phrase-enter');
+                    phraseEl.classList.add('phrase-visible');
+                }, 420);
+            }, 3000);
+        }
+
+        function initApp() {
             loadState();
             renderAll();
+            startHeroTextAnimation();
+
+            // القائمة المنسدلة لزر الرئيسية
+            const mainMenuToggleBtn = document.getElementById('main-menu-toggle-btn');
+            const mainMenuWrapper = document.getElementById('main-actions-dropdown-wrapper');
+            if (mainMenuToggleBtn) {
+                mainMenuToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleMainMenu();
+                });
+            }
+
+            // إغلاق القائمة المنسدلة عند الضغط خارجها
+            document.addEventListener('click', (e) => {
+                if (mainMenuWrapper && !mainMenuWrapper.contains(e.target)) {
+                    toggleMainMenu(false);
+                }
+            });
+
+            // إغلاق القائمة المنسدلة والنوافذ المنبثقة بـ Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    toggleMainMenu(false);
+                    closeRenameModal();
+                    closeConfirmModal();
+                    const previewModal = document.getElementById('preview-modal');
+                    if (previewModal && !previewModal.classList.contains('hidden')) {
+                        previewModal.classList.add('hidden');
+                        previewModal.classList.remove('flex');
+                        document.getElementById('preview-body').innerHTML = '';
+                    }
+                }
+            });
 
             // البحث الفوري
             const searchInput = document.getElementById('search-input');
@@ -1364,14 +1577,14 @@
             });
 
             clearSearchBtn.addEventListener('click', () => {
-                searchInput.value = '';
                 appState.searchQuery = '';
+                searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
                 renderItemsList();
                 searchInput.focus();
             });
 
-            // التصفية حسب النوع
+            // تصفية النوع
             document.getElementById('type-filter').addEventListener('change', (e) => {
                 appState.typeFilter = e.target.value;
                 renderItemsList();
@@ -1380,10 +1593,17 @@
             // إنشاء مجلد
             document.getElementById('create-folder-btn').addEventListener('click', handleCreateFolder);
             document.getElementById('new-folder-name').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleCreateFolder();
-                }
+                if (e.key === 'Enter') handleCreateFolder();
+            });
+
+            // تعديل الاسم
+            document.getElementById('rename-cancel-btn').addEventListener('click', closeRenameModal);
+            document.getElementById('rename-save-btn').addEventListener('click', handleSaveRename);
+            document.getElementById('rename-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') handleSaveRename();
+            });
+            document.getElementById('rename-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'rename-modal') closeRenameModal();
             });
 
             // السحب والإفلات واختيار الملفات
@@ -1396,16 +1616,16 @@
                 handleFilesSelected(e.target.files);
             });
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
+            ['dragenter', 'dragover'].forEach(evtName => {
+                dropZone.addEventListener(evtName, (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     dropZone.classList.add('drop-zone-active');
                 });
             });
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
+            ['dragleave', 'drop'].forEach(evtName => {
+                dropZone.addEventListener(evtName, (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     dropZone.classList.remove('drop-zone-active');
@@ -1429,26 +1649,10 @@
             // إضافة رابط Google Drive
             document.getElementById('add-drive-link-btn').addEventListener('click', handleAddDriveLink);
             document.getElementById('drive-file-url').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddDriveLink();
-                }
+                if (e.key === 'Enter') handleAddDriveLink();
             });
 
-            // نافذة تعديل الاسم
-            document.getElementById('rename-cancel-btn').addEventListener('click', closeRenameModal);
-            document.getElementById('rename-save-btn').addEventListener('click', handleSaveRename);
-            document.getElementById('rename-input').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSaveRename();
-                }
-            });
-            document.getElementById('rename-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'rename-modal') closeRenameModal();
-            });
-
-            // نافذة التأكيد
+            // أحداث نافذة التأكيد
             document.getElementById('confirm-cancel-btn').addEventListener('click', closeConfirmModal);
             document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
                 if (typeof pendingConfirmAction === 'function') {
@@ -1460,23 +1664,32 @@
                 if (e.target.id === 'confirm-modal') closeConfirmModal();
             });
 
-            // نافذة المعاينة
-            const closePreview = () => {
+            // إغلاق نافذة المعاينة
+            document.getElementById('preview-close-btn').addEventListener('click', () => {
                 const modal = document.getElementById('preview-modal');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.getElementById('preview-body').innerHTML = '';
-            };
-            document.getElementById('preview-close-btn').addEventListener('click', closePreview);
+            });
             document.getElementById('preview-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'preview-modal') closePreview();
+                if (e.target.id === 'preview-modal') {
+                    e.target.classList.add('hidden');
+                    e.target.classList.remove('flex');
+                    document.getElementById('preview-body').innerHTML = '';
+                }
             });
 
             // النسخ الاحتياطي وإعادة الضبط
             document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
             document.getElementById('import-backup-input').addEventListener('change', handleImportBackup);
             document.getElementById('reset-app-btn').addEventListener('click', handleResetApp);
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
