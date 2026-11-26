@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ملفي جاهز الحفظ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8; --surface: #ffffff; --text: #1c1e21; --muted: #6b7280;
+  --border: #dfe3e8; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --surface: #1f2226; --text: #e8eaed; --muted: #9aa0a6;
+    --border: #2f3439; --accent: #60a5fa;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; padding: 24px 16px;
+  font-family: "Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+main { max-width: 720px; margin: 0 auto; }
+h1 { font-size: 1.6rem; margin: 0 0 14px; text-align: center; }
+input, select, button {
+  font: inherit; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+button { cursor: pointer; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px; color: var(--muted); }
+.crumbs button { border: none; background: none; color: var(--accent); padding: 4px 6px; }
+.back { margin-bottom: 12px; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+.controls input[type=search] { flex: 0 1 320px; }
+.controls select { flex: 0 1 160px; }
+.count { color: var(--muted); font-size: 0.9rem; margin-bottom: 10px; }
+ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+li.row {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+}
+.icon { font-size: 1.2rem; }
+.name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; color: var(--text); text-decoration: none; }
+a.name:hover, .folder-name:hover { color: var(--accent); }
+.folder-name { cursor: pointer; }
+.badge { flex-shrink: 0; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; }
+.word { background: #2b579a; } .excel { background: #217346; } .pdf { background: #d32f2f; }
+.open-btn { color: var(--accent); }
+.empty { text-align: center; color: var(--muted); padding: 24px 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ملفي جاهز الحفظ</h1>
+
+  <div class="crumbs" id="crumbs"></div>
+  <button class="back" id="backBtn" hidden>⬅ رجوع</button>
+
+  <div class="controls">
+    <input id="search" type="search" placeholder="ابحث في هذا المجلد..." aria-label="بحث">
+    <select id="type" aria-label="نوع الملف">
+      <option value="all">كل الأنواع</option>
+      <option value="word">Word</option>
+      <option value="excel">Excel</option>
+      <option value="pdf">PDF</option>
+    </select>
+  </div>
+
+  <div class="count" id="count"></div>
+  <ul id="list"></ul>
+  <div class="empty" id="empty" hidden>لا توجد عناصر هنا</div>
+</main>
+
+<script>
+/*
+  لتعديل المحتوى عدّل المصفوفتين فقط:
+
+  FOLDERS: المجلدات.
+    id: معرّف فريد بالإنجليزية (بدون مسافات)
+    name: اسم المجلد
+    parent: معرّف المجلد الأب، أو null للمجلدات الرئيسية
+
+  FILES: الملفات.
+    name: اسم الملف
+    type: word أو excel أو pdf
+    url: رابط Google Drive
+    folder: معرّف المجلد الذي يحتوي الملف، أو null للرئيسية
+*/
+const FOLDERS = [
+  // { id: "work", name: "العمل", parent: null },
+  // { id: "designs", name: "التصاميم", parent: "work" },
+];
+
+const FILES = [
+  // { name: "السيرة الذاتية", type: "pdf", url: "https://drive.google.com/file/d/ID/view", folder: null },
+  // { name: "عرض تقديمي", type: "word", url: "https://drive.google.com/file/d/ID/view", folder: "designs" },
+];
+
+const LABELS = { word: "Word", excel: "Excel", pdf: "PDF" };
+let current = null;
+
+const $ = id => document.getElementById(id);
+const list = $("list"), crumbs = $("crumbs"), backBtn = $("backBtn");
+const search = $("search"), typeSel = $("type"), count = $("count"), empty = $("empty");
+
+const folderById = id => FOLDERS.find(f => f.id === id);
+
+function pathOf(id) {
+  const chain = [];
+  let cur = id ? folderById(id) : null;
+  while (cur) { chain.unshift(cur); cur = cur.parent ? folderById(cur.parent) : null; }
+  return chain;
+}
+
+function openFolder(id) {
+  current = id;
+  search.value = "";
+  render();
+}
+
+function render() {
+  crumbs.innerHTML = "";
+  const root = document.createElement("button");
+  root.textContent = "الرئيسية";
+  root.addEventListener("click", () => openFolder(null));
+  crumbs.appendChild(root);
+  pathOf(current).forEach(f => {
+    crumbs.appendChild(document.createTextNode(" / "));
+    const b = document.createElement("button");
+    b.textContent = f.name;
+    b.addEventListener("click", () => openFolder(f.id));
+    crumbs.appendChild(b);
+  });
+  backBtn.hidden = !current;
+
+  const q = search.value.trim().toLowerCase();
+  const t = typeSel.value;
+
+  const subs = FOLDERS
+    .filter(f => (f.parent || null) === current)
+    .filter(f => f.name.toLowerCase().includes(q));
+  const here = FILES
+    .filter(f => (f.folder || null) === current)
+    .filter(f => (t === "all" || f.type === t) && f.name.toLowerCase().includes(q));
+
+  list.innerHTML = "";
+  subs.forEach(f => {
+    const li = document.createElement("li");
+    li.className = "row";
+    const icon = document.createElement("span");
+    icon.className = "icon"; icon.textContent = "📁";
+    const name = document.createElement("span");
+    name.className = "name folder-name";
+    name.textContent = f.name;
+    name.addEventListener("click", () => openFolder(f.id));
+    const open = document.createElement("button");
+    open.className = "open-btn";
+    open.textContent = "فتح";
+    open.addEventListener("click", () => openFolder(f.id));
+    li.append(icon, name, open);
+    list.appendChild(li);
+  });
+
+  here.forEach(f => {
+    const li = document.createElement("li");
+    li.className = "row";
+    const a = document.createElement("a");
+    a.className = "name";
+    a.href = f.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = f.name;
+    const badge = document.createElement("span");
+    badge.className = "badge " + f.type;
+    badge.textContent = LABELS[f.type] || "ملف";
+    li.append(a, badge);
+    list.appendChild(li);
+  });
+
+  count.textContent = `${subs.length} مجلد و ${here.length} ملف`;
+  empty.hidden = subs.length + here.length > 0;
+}
+
+backBtn.addEventListener("click", () => {
+  const parent = folderById(current);
+  openFolder(parent && parent.parent ? parent.parent : null);
+});
+search.addEventListener("input", render);
+typeSel.addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
